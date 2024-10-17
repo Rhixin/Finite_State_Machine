@@ -18,6 +18,11 @@ class Entity(pygame.Rect):
         self.attack_timer = 0
         self.move_timer = 0
         
+    def render(self, screen):
+        self.draw_health_bar(screen)
+        self.draw_range(screen)
+        
+        
     def update_state(self, enemies, dt):
         
         
@@ -106,14 +111,14 @@ class Entity(pygame.Rect):
         
         
     #GRAPHICS
-    def draw_health_bar(self,entity, screen):
+    def draw_health_bar(self, screen):
         max_health = 100
-        health_ratio = entity.hp / max_health  
+        health_ratio = self.hp / max_health  
         health_bar_width = 40  
         health_bar_height = 5  
 
-        bar_x = entity.x + (entity.width - health_bar_width) // 2  
-        bar_y = entity.y - 30  
+        bar_x = self.x + (self.width - health_bar_width) // 2  
+        bar_y = self.y - 30  
 
         pygame.draw.rect(screen, 'black', (bar_x, bar_y, health_bar_width, health_bar_height))
         pygame.draw.rect(screen, 'pink', (bar_x, bar_y, health_bar_width * health_ratio, health_bar_height))

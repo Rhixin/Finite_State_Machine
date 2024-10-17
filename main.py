@@ -13,23 +13,24 @@ dt = 0
 # List to hold all NPCs
 aliens = []
 humans = []
+potions = []
 
 id_counter = 1
 
 
 while running:
-    # poll for events
+   
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         
         # Check for mouse button down event
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Left mouse button
+            if event.button == 3:  # Right mouse button
                 mouse_x, mouse_y = pygame.mouse.get_pos()  
                 new_alien = Alien(id_counter, 100, 10, 0.25, 1, mouse_x, mouse_y, 20, 20, 50)
                 aliens.append(new_alien) 
-            elif event.button == 3:  # Right mouse button
+            elif event.button == 1:  # Left mouse button
                 mouse_x, mouse_y = pygame.mouse.get_pos()  
                 new_human = Human(id_counter, 100, 10, 0.25, 1, mouse_x, mouse_y, 20, 20,50)
                 humans.append(new_human)
@@ -39,19 +40,13 @@ while running:
     screen.fill("white")
 
     for alien in aliens:
-        pygame.draw.rect(screen, "red", alien)
-        alien.draw_health_bar(alien, screen)
-        alien.draw_range(screen) 
-        
+        alien.render(screen)
         alien.update_state(humans, dt)
         
     aliens = [alien for alien in aliens if alien.hp > 0]
         
     for human in humans:
-        pygame.draw.rect(screen, "blue", human)
-        human.draw_health_bar(human, screen) 
-        human.draw_range(screen)
-        
+        human.render(screen)
         human.update_state(aliens, dt)
         
     humans = [human for human in humans if human.hp > 0]
