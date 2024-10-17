@@ -66,7 +66,7 @@ while running:
     
     if new_potion is not None:
         #only 5 potions max sa map
-        if len(potions) <= 5:
+        if len(potions) < 5:
             potions.append(new_potion)
     
     for potion in potions:

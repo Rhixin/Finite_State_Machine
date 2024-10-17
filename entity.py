@@ -18,7 +18,7 @@ class Entity(pygame.Rect):
         
     def render(self, screen):
         self.draw_health_bar(screen)
-        self.draw_range(screen)
+        #self.draw_range(screen)
         
         
     def update_state(self, enemies,potions, dt):
@@ -30,7 +30,14 @@ class Entity(pygame.Rect):
             self.current_state = 2
         
         if self.hp <= 30:
+            
             self.current_state = 4
+            
+            if self.find_nearest_potion(potions) is None:
+                self.current_state = 1
+                
+            if self.hp <= 0:
+                self.current_state = 5
             
         
         if self.current_state == 0:
@@ -38,25 +45,13 @@ class Entity(pygame.Rect):
         elif self.current_state == 1:
             self.idle_state()
         elif self.current_state == 2:
-            self.hunting_state(dt)
+            self.hunting_state(enemies, dt)
         elif self.current_state == 3:
             self.attacking_state(enemy, dt)  
         elif self.current_state == 4:
             self.finding_potion_state(potions, dt)
         
     #HELPER FUNCTIONS
-    def move(self, dt):
-        self.move_timer += dt
-        
-        if self.move_timer >= self.speed:
-            self.direction = random.choice([self.direction.rotate(-90), self.direction.rotate(90)])
-            
-            new_position = self.center + (self.direction * self.speed)
-            
-            if 0 <= new_position.x < 1280 - self.width and 0 <= new_position.y < 720 - self.height:
-                self.move_ip(self.direction * 10)  
-                self.move_timer = 0
-                
     def move_towards_potion(self, potion, dt):
         self.move_timer += dt
         
@@ -69,9 +64,8 @@ class Entity(pygame.Rect):
             new_position = self.center + (self.direction * self.speed)
             
             if 0 <= new_position.x < 1280 - self.width and 0 <= new_position.y < 720 - self.height:
-                self.move_ip(self.direction * 10)  
+                self.move_ip(self.direction * 20)  
                 self.move_timer = 0
-    
                 
     def find_nearest_potion(self, potions):
         nearest_potion = None
@@ -89,6 +83,40 @@ class Entity(pygame.Rect):
             return nearest_potion 
         else:
             return None
+        
+    def move_towards_enemy(self, enemy, dt):
+        self.move_timer += dt
+        
+        if self.move_timer >= self.speed:
+            self.direction = pygame.Vector2(enemy.x - self.centerx, enemy.y - self.centery)
+        
+            if self.direction.length() > 0: 
+                self.direction.normalize_ip()  
+                
+            new_position = self.center + (self.direction * self.speed)
+            
+            if 0 <= new_position.x < 1280 - self.width and 0 <= new_position.y < 720 - self.height:
+                self.move_ip(self.direction * 7)  
+                self.move_timer = 0
+        
+    def find_nearest_enemy(self, enemies):
+        nearest_potion = None
+        nearest_distance = float('inf') 
+
+        for enemy in enemies:
+
+            distance = math.sqrt((self.centerx - enemy.x) ** 2 + (self.centery - enemy.y) ** 2)
+
+            if distance < nearest_distance:
+                nearest_distance = distance
+                nearest_potion = enemy
+
+        if nearest_potion is not None:
+            return nearest_potion 
+        else:
+            return None
+        
+    
 
     def attack(self, enemy, dt):
         self.attack_timer += dt
@@ -123,25 +151,22 @@ class Entity(pygame.Rect):
         print(f"Entity {self.id} is doing nothing.")
         
     #state 2
-    def hunting_state(self, dt):
-        self.move(dt)
+    def hunting_state(self,enemies, dt):
+        nearest_enemy = self.find_nearest_enemy(enemies)
+        if nearest_enemy is not None:
+            self.move_towards_enemy(nearest_enemy, dt)
         
     #state 3
     def attacking_state(self, enemy, dt):
         self.attack(enemy, dt)
-    
-    #state 4
-    def finding_ammo_state(self):
-        print(f"Entity {self.id} is moving, unable to detect enemies, prioritizing ammo.")
         
-    #state 5
+    #state 4
     def finding_potion_state(self, potions, dt):
         nearest_potion = self.find_nearest_potion(potions)
         if nearest_potion is not None:
             self.move_towards_potion(nearest_potion, dt)
-            
         
-    #state 6
+    #state 5
     def dead_state(self):
         print(f"Entity {self.id} is dead.")
         
