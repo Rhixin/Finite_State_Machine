@@ -66,9 +66,13 @@ while running:
 
     screen.fill("white")
     
-    draw_text(screen, "Humans VS Alien Simulator", 1, 8, color="black", fontsize = 28)
+    draw_text(screen, "Humans VS Aliens Simulator by Zhazted", 1, 8, color="black", fontsize = 28)
     draw_text(screen, "Left Click to spawn a Human", 1, 50, color="black", fontsize = 18)
     draw_text(screen, "Right Click to spawn an Alien", 1, 70, color="black", fontsize = 18)
+    
+    
+    draw_text(screen, f"Humans Count : {len(humans)}", 100, 600, color="black", fontsize = 22)
+    draw_text(screen, f"Aliens Count : {len(aliens)}", 1000, 600, color="black", fontsize = 22)
     
     #potions logic
     new_potion = potion_generator.generate(dt)
