@@ -30,7 +30,6 @@ def draw_text(screen, text, x, y, color="black", fontsize = 10):
 
 # pygame setup
 pygame.init()
-
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 running = True
@@ -75,8 +74,8 @@ while running:
     new_potion = potion_generator.generate(dt)
     
     if new_potion is not None:
-        #only 5 potions max sa map
-        if len(potions) < 5:
+        #only 3 potions max sa map
+        if len(potions) < 2:
             potions.append(new_potion)
     
     for potion in potions:

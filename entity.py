@@ -13,46 +13,75 @@ class Entity(pygame.Rect):
         self.attack_speed = attack_speed
         self.direction = pygame.Vector2(1, 0)  
         self.attack_range = attack_range
-        self.current_state = 0
         self.attack_timer = 0
         self.move_timer = 0
         self.attack_animation = False
         self.enemy = None
         
-    
+        self.current_state = 0
+        self.transition_table = [
+            [ 1,  1,  1,  1,  1,  1,  1,  1],
+            [ 1,  2, -1, -1, -1, -1, -1, -1],
+            [-1, -1,  2,  3, -1, -1, -1, -1],
+            [-1, -1,  1,  3,  4, -1, -1, -1],
+            [-1, -1, -1, -1,  4,  5,  1,  3],
+            [ 5,  5,  5,  5,  5,  5,  5,  5],
+        ]
         
     def render(self, screen):
         self.draw_health_bar(screen)
+        font = pygame.font.SysFont('Arial', 12)  
+        text_surface = font.render(f'State: {self.current_state}', True, "black") 
         
-        
-        
+        text_x = self.x - 10
+        text_y = self.y + 20
+    
+        screen.blit(text_surface, (text_x, text_y))
+          
     def update_state(self, enemies,potions, dt):
-        enemy = self.detect_enemies(enemies)
+        machine_input = None
+        enemy_in_map = self.find_nearest_enemy(enemies)
+        enemy_in_range = self.detect_enemies(enemies)
+        potion_in_map = self.find_nearest_potion(potions)
         
-        
-        if enemy:
-            self.current_state = 3
-        else:
-            self.current_state = 2
-        
-        if self.hp <= 30:
-            
-            if self.find_nearest_potion(potions) is None:
-                if enemy:
-                    self.current_state = 3
-                else:
-                    self.current_state = 2
-                    
+        if self.current_state == 0:
+            #always go to idle
+            machine_input = 0
+        elif self.current_state == 1:
+            if enemy_in_map:
+                machine_input = 1
             else:
-                self.current_state = 4
+                machine_input = 0
+        elif self.current_state == 2:
+            if enemy_in_range:
+                machine_input = 3
+            else:
+                machine_input = 2
+        elif self.current_state == 3:
+            if enemy_in_range:
+                machine_input = 3
+            else:
+                machine_input = 2
                 
-                
+            if self.hp <= 30:
+                machine_input = 4
+        elif self.current_state == 4:
             if self.hp <= 0:
-                self.current_state = 5
-                
-        if self.current_state == 5:
-            self.current_state = 5
+                machine_input = 5
+            elif self.hp <= 30:
+                machine_input = 4
+            else:
+                machine_input = 6
             
+            if potion_in_map is None:
+                machine_input = 7
+        else:
+            #dead state
+            machine_input = 5
+            
+            
+        self.current_state = self.transition_table[self.current_state][machine_input]
+        
         if self.current_state == 0:
             self.spawn_state()
         elif self.current_state == 1:
@@ -60,11 +89,45 @@ class Entity(pygame.Rect):
         elif self.current_state == 2:
             self.hunting_state(enemies, dt)
         elif self.current_state == 3:
-            self.attacking_state(enemy, dt)  
+            self.attacking_state(enemy_in_range, dt)  
         elif self.current_state == 4:
             self.finding_potion_state(potions, dt)
         elif self.current_state == 5:
             self.dead_state()
+            
+    
+            
+    #STATES
+    
+    #state 0
+    def spawn_state(self):
+        print(f"Entity {self.id} just spawned.")
+        
+    #state 1 
+    def idle_state(self):
+        print(f"Entity {self.id} is doing nothing.")
+        
+    #state 2
+    def hunting_state(self,enemies, dt):
+        nearest_enemy = self.find_nearest_enemy(enemies)
+        if nearest_enemy is not None:
+            self.move_towards_enemy(nearest_enemy, dt)
+        
+    #state 3
+    def attacking_state(self, enemy, dt):
+        self.attack(enemy, dt)
+        
+    #state 4
+    def finding_potion_state(self, potions, dt):
+        nearest_potion = self.find_nearest_potion(potions)
+        if nearest_potion is not None:
+            self.move_towards_potion(nearest_potion, dt)
+        
+    #state 5
+    def dead_state(self):
+        print(f"Entity {self.id} is dead.")
+        
+    
         
     #HELPER FUNCTIONS
     def move_towards_potion(self, potion, dt):
@@ -158,36 +221,6 @@ class Entity(pygame.Rect):
                 return enemy
         return None
     
-    
-    #STATES
-    
-    #state 0
-    def spawn_state(self):
-        print(f"Entity {self.id} just spawned.")
-        
-    #state 1 
-    def idle_state(self):
-        print(f"Entity {self.id} is doing nothing.")
-        
-    #state 2
-    def hunting_state(self,enemies, dt):
-        nearest_enemy = self.find_nearest_enemy(enemies)
-        if nearest_enemy is not None:
-            self.move_towards_enemy(nearest_enemy, dt)
-        
-    #state 3
-    def attacking_state(self, enemy, dt):
-        self.attack(enemy, dt)
-        
-    #state 4
-    def finding_potion_state(self, potions, dt):
-        nearest_potion = self.find_nearest_potion(potions)
-        if nearest_potion is not None:
-            self.move_towards_potion(nearest_potion, dt)
-        
-    #state 5
-    def dead_state(self):
-        print(f"Entity {self.id} is dead.")
         
         
     #GRAPHICS
