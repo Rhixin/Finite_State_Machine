@@ -10,7 +10,7 @@ class Potion():
         self.spawn_state()
         
     def render(self, screen):
-        pygame.draw.circle(screen, "yellow", (self.x, self.y), self.radius)
+        pygame.draw.circle(screen, "green", (self.x, self.y), self.radius)
         
     def update_state(self, entities):
         entity = self.detect_entities(entities)

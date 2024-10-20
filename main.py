@@ -22,9 +22,15 @@ class Potion_Generator():
             return new_potion
         else:
             return None
+        
+def draw_text(screen, text, x, y, color="black", fontsize = 10):
+    font = pygame.font.SysFont('Arial', fontsize)  
+    text_surface = font.render(text, True, color) 
+    screen.blit(text_surface, (x,y))
 
 # pygame setup
 pygame.init()
+
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 running = True
@@ -61,6 +67,10 @@ while running:
 
     screen.fill("white")
     
+    draw_text(screen, "Humans VS Alien Simulator", 1, 8, color="black", fontsize = 28)
+    draw_text(screen, "Left Click to spawn a Human", 1, 50, color="black", fontsize = 18)
+    draw_text(screen, "Right Click to spawn an Alien", 1, 70, color="black", fontsize = 18)
+    
     #potions logic
     new_potion = potion_generator.generate(dt)
     
@@ -90,6 +100,7 @@ while running:
     humans = [human for human in humans if human.hp > 0]
 
     pygame.display.flip()
+    
     dt = clock.tick(60) / 1000
 
 pygame.quit()

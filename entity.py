@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 
+
 class Entity(pygame.Rect):
     def __init__(self, id, hp, damage, speed, attack_speed, x, y, width, height, attack_range):
         super().__init__(x, y, width, height)  
@@ -15,14 +16,19 @@ class Entity(pygame.Rect):
         self.current_state = 0
         self.attack_timer = 0
         self.move_timer = 0
+        self.attack_animation = False
+        self.enemy = None
+        
+    
         
     def render(self, screen):
         self.draw_health_bar(screen)
-        #self.draw_range(screen)
+        
         
         
     def update_state(self, enemies,potions, dt):
         enemy = self.detect_enemies(enemies)
+        
         
         if enemy:
             self.current_state = 3
@@ -31,15 +37,22 @@ class Entity(pygame.Rect):
         
         if self.hp <= 30:
             
-            self.current_state = 4
-            
             if self.find_nearest_potion(potions) is None:
-                self.current_state = 1
+                if enemy:
+                    self.current_state = 3
+                else:
+                    self.current_state = 2
+                    
+            else:
+                self.current_state = 4
+                
                 
             if self.hp <= 0:
                 self.current_state = 5
+                
+        if self.current_state == 5:
+            self.current_state = 5
             
-        
         if self.current_state == 0:
             self.spawn_state()
         elif self.current_state == 1:
@@ -50,6 +63,8 @@ class Entity(pygame.Rect):
             self.attacking_state(enemy, dt)  
         elif self.current_state == 4:
             self.finding_potion_state(potions, dt)
+        elif self.current_state == 5:
+            self.dead_state()
         
     #HELPER FUNCTIONS
     def move_towards_potion(self, potion, dt):
@@ -64,10 +79,11 @@ class Entity(pygame.Rect):
             new_position = self.center + (self.direction * self.speed)
             
             if 0 <= new_position.x < 1280 - self.width and 0 <= new_position.y < 720 - self.height:
-                self.move_ip(self.direction * 20)  
+                self.move_ip(self.direction * 10)  
                 self.move_timer = 0
                 
     def find_nearest_potion(self, potions):
+        
         nearest_potion = None
         nearest_distance = float('inf') 
 
@@ -100,7 +116,7 @@ class Entity(pygame.Rect):
                 self.move_timer = 0
         
     def find_nearest_enemy(self, enemies):
-        nearest_potion = None
+        nearest_enemy = None
         nearest_distance = float('inf') 
 
         for enemy in enemies:
@@ -109,10 +125,10 @@ class Entity(pygame.Rect):
 
             if distance < nearest_distance:
                 nearest_distance = distance
-                nearest_potion = enemy
+                nearest_enemy = enemy
 
-        if nearest_potion is not None:
-            return nearest_potion 
+        if nearest_enemy is not None:
+            return nearest_enemy 
         else:
             return None
         
@@ -120,16 +136,19 @@ class Entity(pygame.Rect):
 
     def attack(self, enemy, dt):
         self.attack_timer += dt
+        self.enemy = enemy
         
+        # Draw a line from the attacker to the enemy when the timer exceeds attack_speed
         if self.attack_timer >= self.attack_speed:
+            
+            self.attack_animation = True
+            
+            # Reset the attack timer and apply damage to the enemy
             self.attack_timer = 0
             enemy.hp -= self.damage
-            #print(f"Enemy {enemy.id} hp: {enemy.hp}")
-            
-    def random_state(self):
-        states = [self.idle, self.move, self.defend, self.attack]
-        state_chosen = random.choice(states)
-        state_chosen()
+        else:
+            self.attack_animation = False
+
         
     def detect_enemies(self, enemies):
         for enemy in enemies:
@@ -186,3 +205,5 @@ class Entity(pygame.Rect):
         
     def draw_range(self, screen):
         pygame.draw.circle(screen, 'gray', self.center, self.attack_range, 1)
+        
+        
