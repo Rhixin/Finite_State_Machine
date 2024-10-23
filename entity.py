@@ -17,6 +17,7 @@ class Entity(pygame.Rect):
         self.move_timer = 0
         self.attack_animation = False
         self.enemy = None
+        self.color_hp = "pink"
         
         self.current_state = 0
         self.transition_table = [
@@ -31,10 +32,10 @@ class Entity(pygame.Rect):
     def render(self, screen):
         self.draw_health_bar(screen)
         font = pygame.font.SysFont('Arial', 12)  
-        text_surface = font.render(f'State: {self.current_state}', True, "black") 
+        text_surface = font.render(f'State: {self.current_state}', True, self.color_hp) 
         
-        text_x = self.x - 10
-        text_y = self.y + 20
+        text_x = self.x
+        text_y = self.y + 50
     
         screen.blit(text_surface, (text_x, text_y))
           
@@ -43,6 +44,26 @@ class Entity(pygame.Rect):
         enemy_in_map = self.find_nearest_enemy(enemies)
         enemy_in_range = self.detect_enemies(enemies)
         potion_in_map = self.find_nearest_potion(potions)
+        
+        machine_input = self.handle_input(enemy_in_map, enemy_in_range, potion_in_map)
+             
+        self.current_state = self.transition_table[self.current_state][machine_input]
+        
+        if self.current_state == 0:
+            self.spawn_state()
+        elif self.current_state == 1:
+            self.idle_state()
+        elif self.current_state == 2:
+            self.hunting_state(enemies, dt)
+        elif self.current_state == 3:
+            self.attacking_state(enemy_in_range, dt)  
+        elif self.current_state == 4:
+            self.finding_potion_state(potions, dt)
+        elif self.current_state == 5:
+            self.dead_state()
+            
+    def handle_input(self, enemy_in_map, enemy_in_range, potion_in_map):
+        machine_input = None
         
         if self.current_state == 0:
             #always go to idle
@@ -63,7 +84,7 @@ class Entity(pygame.Rect):
             else:
                 machine_input = 2
                 
-            if self.hp <= 30:
+            if self.hp <= 30 and potion_in_map:
                 machine_input = 4
         elif self.current_state == 4:
             if self.hp <= 0:
@@ -78,22 +99,11 @@ class Entity(pygame.Rect):
         else:
             #dead state
             machine_input = 5
-            
-            
-        self.current_state = self.transition_table[self.current_state][machine_input]
         
-        if self.current_state == 0:
-            self.spawn_state()
-        elif self.current_state == 1:
-            self.idle_state()
-        elif self.current_state == 2:
-            self.hunting_state(enemies, dt)
-        elif self.current_state == 3:
-            self.attacking_state(enemy_in_range, dt)  
-        elif self.current_state == 4:
-            self.finding_potion_state(potions, dt)
-        elif self.current_state == 5:
-            self.dead_state()
+        return machine_input
+        
+        
+        
             
     
             
@@ -202,7 +212,7 @@ class Entity(pygame.Rect):
         self.enemy = enemy
         
         # Draw a line from the attacker to the enemy when the timer exceeds attack_speed
-        if self.attack_timer >= self.attack_speed:
+        if self.attack_timer >= self.attack_speed and enemy:
             
             self.attack_animation = True
             
@@ -230,11 +240,11 @@ class Entity(pygame.Rect):
         health_bar_width = 40  
         health_bar_height = 5  
 
-        bar_x = self.x + (self.width - health_bar_width) // 2  
+        bar_x = self.x
         bar_y = self.y - 30  
 
         pygame.draw.rect(screen, 'black', (bar_x, bar_y, health_bar_width, health_bar_height))
-        pygame.draw.rect(screen, 'pink', (bar_x, bar_y, health_bar_width * health_ratio, health_bar_height))
+        pygame.draw.rect(screen, self.color_hp, (bar_x, bar_y, health_bar_width * health_ratio, health_bar_height))
         
     def draw_range(self, screen):
         pygame.draw.circle(screen, 'gray', self.center, self.attack_range, 1)

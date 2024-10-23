@@ -4,12 +4,15 @@ import pygame
 class Alien(Entity):
     def __init__(self, id, hp, damage, speed, attack_speed, x, y, width, height, attack_range):
         super().__init__(id, hp, damage, speed, attack_speed,x,y, width, height, attack_range)
+        self.bg = pygame.image.load("images/alien.png")
+        self.bg = pygame.transform.scale(self.bg, (width * 2, height * 2))
+        self.color_hp = "green"
         
     def render(self, screen):
         super().render(screen)
-        pygame.draw.rect(screen, "red", self)
+        screen.blit(self.bg, (self.x, self.y))
         
         if self.attack_animation:
-            pygame.draw.line(screen, "red", (self.centerx, self.centery), (self.enemy.centerx, self.enemy.centery), 4)
+            pygame.draw.line(screen, "green", (self.centerx, self.centery), (self.enemy.centerx, self.enemy.centery), 4)
             self.attack_animation = False
         

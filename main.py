@@ -29,6 +29,8 @@ def draw_text(screen, text, x, y, color="black", fontsize = 10):
     screen.blit(text_surface, (x,y))
 
 # pygame setup
+bg = pygame.image.load("images/bg.png")
+bg = pygame.transform.scale(bg,(1280,720))
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
@@ -64,15 +66,15 @@ while running:
 
             id_counter += 1
 
-    screen.fill("white")
+    screen.blit(bg, (0,0))
     
-    draw_text(screen, "Humans VS Aliens Simulator by Zhazted", 1, 8, color="black", fontsize = 28)
-    draw_text(screen, "Left Click to spawn a Human", 1, 50, color="black", fontsize = 18)
-    draw_text(screen, "Right Click to spawn an Alien", 1, 70, color="black", fontsize = 18)
+    draw_text(screen, "Humans VS Aliens Simulator by Zhazted", 100, 48, color="white", fontsize = 28)
+    draw_text(screen, "Left Click to spawn a Human", 100, 90, color="white", fontsize = 18)
+    draw_text(screen, "Right Click to spawn an Alien", 100, 110, color="white", fontsize = 18)
     
     
-    draw_text(screen, f"Humans Count : {len(humans)}", 100, 600, color="black", fontsize = 22)
-    draw_text(screen, f"Aliens Count : {len(aliens)}", 1000, 600, color="black", fontsize = 22)
+    draw_text(screen, f"Humans Count : {len(humans)}", 100, 600, color="white", fontsize = 22)
+    draw_text(screen, f"Aliens Count : {len(aliens)}", 1000, 600, color="white", fontsize = 22)
     
     #potions logic
     new_potion = potion_generator.generate(dt)
